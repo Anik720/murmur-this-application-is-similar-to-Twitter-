@@ -6,5 +6,6 @@ export class MurmurResponseDto {
     username: string;
   };
   likeCount: number;
+    likedUserIds: number[];
   createdAt: Date;
 }

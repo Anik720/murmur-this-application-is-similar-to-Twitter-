@@ -15,6 +15,7 @@ export class MurmursService {
   ) {}
 
   async create(userId: number, createMurmurDto: CreateMurmurDto): Promise<MurmurResponseDto> {
+    console.log('createMurmurDto', createMurmurDto);
     const user = await this.usersService.findById(userId);
     const murmur = this.murmursRepository.create({
       content: createMurmurDto.content,
@@ -95,6 +96,7 @@ async findTimeline(
         username: murmur.user.username,
       },
       likeCount: murmur.likes ? murmur.likes.length : 0,
+      likedUserIds: murmur.likes?.map(like => like.userId) || [],
       createdAt: murmur.createdAt,
     };
   }

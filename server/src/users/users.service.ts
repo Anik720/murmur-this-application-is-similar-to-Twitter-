@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { ILike, Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import { UserResponseDto } from './dtos/user-response.dto';
 import { Follow } from 'src/follows/entities/follow.entity';
@@ -39,17 +39,13 @@ async findById(id: number, relations: string[] = []): Promise<User> {
   }
 
 async getProfile(id: number): Promise<UserResponseDto> {
-  const user = await this.findById(id);
+  const user = await this.findById(id, ['followers', 'following']);
 
-  // Count how many users are following this user
-  const followCount = await this.followRepository.count({
-    where: { followingId: id },
-  });
+  const followersIds = user.followers?.map(f => f.followerId) || [];
+  const followingIds = user.following?.map(f => f.followingId) || [];
 
-  // Count how many users this user is following
-  const followedCount = await this.followRepository.count({
-    where: { followerId: id },
-  });
+  const followCount = followersIds.length;
+  const followedCount = followingIds.length;
 
   return {
     id: user.id,
@@ -57,7 +53,31 @@ async getProfile(id: number): Promise<UserResponseDto> {
     email: user.email,
     followCount,
     followedCount,
+    followersIds, // new
+    followingIds, // new
   };
+}
+
+async searchUsers(query: string): Promise<UserResponseDto[]> {
+  if (!query) return [];
+
+  const users = await this.usersRepository.find({
+    where: [
+      { username: ILike(`%${query}%`) },
+      { email: ILike(`%${query}%`) },
+    ],
+    take: 20, // limit to 20 results (adjust as needed)
+  });
+
+  return users.map(user => ({
+    id: user.id,
+    username: user.username,
+    email: user.email,
+    followCount: 0,
+    followedCount: 0,
+    followersIds: [],
+    followingIds: [],
+  }));
 }
 
 }

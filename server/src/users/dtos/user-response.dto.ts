@@ -4,4 +4,6 @@ export class UserResponseDto {
   email: string;
   followCount: number;
   followedCount: number;
+  followersIds: number[]; // <-- Add this
+  followingIds: number[]; // <-- Add this
 }
