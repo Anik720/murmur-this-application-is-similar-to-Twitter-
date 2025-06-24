@@ -2,11 +2,12 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/AuthStore';
 import { Menu, X } from 'lucide-react';
+import { useQueryClient } from '@tanstack/react-query';
 
 function Navbar() {
   const { user, clearAuth } = useAuthStore();
   const navigate = useNavigate();
-
+  const queryClient = useQueryClient();
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<any[]>([]);
@@ -51,7 +52,9 @@ function Navbar() {
   }, [searchQuery]);
 
   const handleLogout = () => {
+
     clearAuth();
+    queryClient.clear();
     localStorage.setItem('access_token', JSON.stringify(null));
     localStorage.setItem('user_info', JSON.stringify(null));
     navigate('/login');

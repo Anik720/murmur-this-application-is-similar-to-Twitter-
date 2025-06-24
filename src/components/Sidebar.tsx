@@ -1,9 +1,11 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/AuthStore';
+import { useQueryClient } from '@tanstack/react-query';
 
 const Sidebar: React.FC = () => {
   const { user, clearAuth } = useAuthStore();
+  const queryClient = useQueryClient();
   const navigate = useNavigate();
 
   // ✅ Fallback to localStorage if store doesn't have user (e.g., after reload)
@@ -12,13 +14,23 @@ const Sidebar: React.FC = () => {
   const accessToken = localStorage.getItem('access_token');
 
   const isLoggedIn = !!user || (!!parsedUser && !!accessToken);
+const handleLogout = () => {
 
-  const handleLogout = () => {
-    clearAuth();
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('user_info');
-    navigate('/login');
-  };
+  const clearAuth = useAuthStore.getState().clearAuth;
+
+  // ✅ Clear Zustand store
+  clearAuth();
+
+  // ✅ Clear React Query cache
+  queryClient.clear();
+
+  // ✅ Clear localStorage
+  localStorage.removeItem('access_token');
+  localStorage.removeItem('user_info');
+
+  // ✅ Redirect to login
+  navigate('/login');
+};
 
   return (
     <div className="w-64 bg-white dark:bg-gray-800 p-4 h-screen fixed top-0 left-0">
