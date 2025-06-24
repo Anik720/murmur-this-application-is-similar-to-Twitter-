@@ -11,6 +11,18 @@ This project is a simple Twitter-like web application called **Murmur**, built u
 - **Database:** MySQL 8.x (Dockerized)
 
 ---
+## 🔐 Environment Variable
+
+Create a `.env` file in the root directory and define the following:
+
+| Variable      | Description                       | Example           |
+|---------------|-----------------------------------|-------------------|
+| `JWT_SECRET`  | Secret key for signing JWT tokens | `your_jwt_secret` |
+
+This variable is loaded automatically using `@nestjs/config` and is used for authentication and token verification.
+
+
+
 
 ## ✅ Implemented Features
 
