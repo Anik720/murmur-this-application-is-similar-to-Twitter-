@@ -14,7 +14,7 @@ import { UsersModule } from 'src/users/users.module';
       imports: [ConfigModule], // ✅ Required so ConfigService is injectable here
       useFactory: async (configService: ConfigService) => ({
         secret: configService.get<string>('JWT_SECRET'),
-        signOptions: { expiresIn: '1h' },
+        signOptions: { expiresIn: '30d' },
       }),
       inject: [ConfigService],
     }),
