@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ILike, Repository } from 'typeorm';
 import { User } from './entities/user.entity';
@@ -39,24 +39,68 @@ async findById(id: number, relations: string[] = []): Promise<User> {
   }
 
 async getProfile(id: number): Promise<UserResponseDto> {
-  const user = await this.findById(id, ['followers', 'following']);
+  try {
+    const user = await this.findById(id, [
+      'followers',
+      'following',
+      'murmurs',
+      'murmurs.user',
+      'murmurs.likes',
+    ]);
 
-  const followersIds = user.followers?.map(f => f.followerId) || [];
-  const followingIds = user.following?.map(f => f.followingId) || [];
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
 
-  const followCount = followersIds.length;
-  const followedCount = followingIds.length;
+    const followersIds = Array.isArray(user.followers)
+      ? user.followers.map(f => f.followerId)
+      : [];
 
-  return {
-    id: user.id,
-    username: user.username,
-    email: user.email,
-    followCount,
-    followedCount,
-    followersIds, // new
-    followingIds, // new
-  };
+    const followingIds = Array.isArray(user.following)
+      ? user.following.map(f => f.followingId)
+      : [];
+
+    const followCount = followersIds.length;
+    const followedCount = followingIds.length;
+
+    const murmurs :any =
+      Array.isArray(user.murmurs) &&
+      user.murmurs.map(murmur => ({
+        id: murmur.id,
+        content: murmur.content,
+        user: murmur.user
+          ? {
+              id: murmur.user.id,
+              username: murmur.user.username,
+            }
+          : null,
+        likeCount: Array.isArray(murmur.likes) ? murmur.likes.length : 0,
+        likedUserIds: Array.isArray(murmur.likes)
+          ? murmur.likes.map(like => like.userId)
+          : [],
+        createdAt: murmur.createdAt,
+      }));
+
+    return {
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      followCount,
+      followedCount,
+      followersIds,
+      followingIds,
+      murmurs: murmurs || [],
+    };
+  } catch (error) {
+    console.error('Error in getProfile:', error);
+    if (error instanceof NotFoundException) {
+      throw error;
+    }
+    throw new InternalServerErrorException('Failed to fetch user profile');
+  }
 }
+
+
 
 async searchUsers(query: string): Promise<UserResponseDto[]> {
   if (!query) return [];

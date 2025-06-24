@@ -22,6 +22,8 @@ function MurmurCard({ murmur }) {
         : murmurService.likeMurmur(murmur.id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['timeline'] });
+      queryClient.invalidateQueries({ queryKey: ['userMurmurs'] });
+      queryClient.invalidateQueries({ queryKey: ['murmur'] });
     },
     onError: () => toast.error('Failed to update like'),
   });
@@ -30,20 +32,22 @@ function MurmurCard({ murmur }) {
     mutationFn: murmurService.deleteMurmur,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['timeline'] });
+      queryClient.invalidateQueries({ queryKey: ['userMurmurs'] });
+      queryClient.invalidateQueries({ queryKey: ['murmur'] });
       toast.success('Murmur deleted');
     },
     onError: () => toast.error('Failed to delete murmur'),
   });
 
   const confirmDelete = () => {
-    deleteMutation.mutate(murmur.id);
+    deleteMutation.mutate(murmur?.id);
     setShowConfirm(false);
   };
 
   return (
     <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md mb-4 relative">
-      <Link to={`/users/${murmur.user.id}`}>
-        <p className="text-light dark:text-gray-300">@{murmur.user.username}</p>
+      <Link to={`/users/${murmur.user?.id}`}>
+        <p className="text-light dark:text-gray-300">@{murmur.user?.username || 'unknown'}</p>
       </Link>
 
       <Link to={`/murmurs/${murmur.id}`}>
@@ -54,11 +58,10 @@ function MurmurCard({ murmur }) {
         <button
           onClick={() => likeMutation.mutate()}
           disabled={likeMutation.isPending}
-          className={`flex items-center px-3 py-1 rounded-full transition ${
-            isLiked
+          className={`flex items-center px-3 py-1 rounded-full transition ${isLiked
               ? 'bg-red-100 text-red-600 hover:bg-red-200'
               : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-          }`}
+            }`}
         >
           <span className="material-icons mr-1">
             {/* {isLiked ? 'favorite' : 'favorite_border'} */}
@@ -66,7 +69,7 @@ function MurmurCard({ murmur }) {
           {isLiked ? 'Liked' : 'Like'} • {murmur.likeCount}
         </button>
 
-        {currentUserId === murmur.user.id && (
+        {currentUserId === murmur.user?.id && (
           <>
             <button
               onClick={() => setShowConfirm(true)}

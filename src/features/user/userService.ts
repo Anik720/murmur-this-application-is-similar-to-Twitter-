@@ -12,7 +12,7 @@ export const userService = {
     return response.data;
   },
   getUserMurmurs: async (id: string, page: number = 1, pageSize: number = 10) => {
-    const response = await api.get<PaginatedResponse<Murmur>>(`/users/${id}/murmurs`, {
+    const response = await api.get<PaginatedResponse<Murmur>>(`/users/${id}`, {
       params: { page, pageSize },
     });
     return response.data;

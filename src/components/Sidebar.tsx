@@ -2,15 +2,21 @@ import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/AuthStore';
 
-
 const Sidebar: React.FC = () => {
-  const { user, clearAuth } = useAuthStore(); // Use clearAuth instead of setUser, setToken
+  const { user, clearAuth } = useAuthStore();
   const navigate = useNavigate();
 
+  // ✅ Fallback to localStorage if store doesn't have user (e.g., after reload)
+  const storedUser = localStorage.getItem('user_info');
+  const parsedUser = storedUser ? JSON.parse(storedUser) : null;
+  const accessToken = localStorage.getItem('access_token');
+
+  const isLoggedIn = !!user || (!!parsedUser && !!accessToken);
+
   const handleLogout = () => {
-    clearAuth(); // Clears both user and token
-    localStorage.setItem('access_token',JSON.stringify(null)); // Replace localStorage.setItem('access_token', null)
-    localStorage.setItem('access_token',JSON.stringify(null));
+    clearAuth();
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('user_info');
     navigate('/login');
   };
 
@@ -24,15 +30,17 @@ const Sidebar: React.FC = () => {
         >
           Home
         </Link>
-        {(user || JSON.parse(localStorage.getItem('access_token') as string) !== null ) && (
+
+        {isLoggedIn && (
           <Link
-            to={`/users/${user?.id || JSON.parse(localStorage.getItem('user_info') as string).id}`}
+            to={`/users/${user?.id || parsedUser?.id}`}
             className="block text-lg text-dark dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700 p-2 rounded"
           >
             Profile
           </Link>
         )}
-        {(user || JSON.parse(localStorage.getItem('access_token') as string) !== null ) && (
+
+        {isLoggedIn && (
           <button
             onClick={handleLogout}
             className="block text-lg text-dark dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700 p-2 rounded w-full text-left"
@@ -40,7 +48,8 @@ const Sidebar: React.FC = () => {
             Logout
           </button>
         )}
-        {(user || JSON.parse(localStorage.getItem('access_token') as string) == null )&& (
+
+        {!isLoggedIn && (
           <Link
             to="/login"
             className="block text-lg text-dark dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700 p-2 rounded"

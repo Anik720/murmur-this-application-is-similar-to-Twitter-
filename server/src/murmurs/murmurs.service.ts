@@ -15,7 +15,6 @@ export class MurmursService {
   ) {}
 
   async create(userId: number, createMurmurDto: CreateMurmurDto): Promise<MurmurResponseDto> {
-    console.log('createMurmurDto', createMurmurDto);
     const user = await this.usersService.findById(userId);
     const murmur = this.murmursRepository.create({
       content: createMurmurDto.content,

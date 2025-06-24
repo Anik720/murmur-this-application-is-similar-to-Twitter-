@@ -1,11 +1,10 @@
 import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { keepPreviousData } from '@tanstack/react-query'; // Import keepPreviousData
+import { keepPreviousData } from '@tanstack/react-query';
 import MurmurCard from '../components/MurmurCard';
 import UserProfile from '../components/UserProfile';
 import { userService } from '../features/user/userService';
 import { usePagination } from '../hooks/usePagination';
-import { PaginatedResponse, Murmur, User } from '../types';
 import { PAGE_SIZE } from '../lib/constants';
 import { useAuthStore } from '../store/AuthStore';
 
@@ -14,24 +13,25 @@ function UserDetailPage() {
   const { user: currentUser } = useAuthStore();
   const { page, nextPage, prevPage, pageSize } = usePagination(1, PAGE_SIZE);
 
-  const { data: user, isLoading: userLoading } = useQuery<User, Error>({
+  const { data: user, isLoading: userLoading } = useQuery({
     queryKey: ['user', id],
     queryFn: () => userService.getUser(id!),
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
   });
 
-  const { data: murmurs, isLoading: murmursLoading } = useQuery<PaginatedResponse<Murmur>, Error>({
+  const { data: murmurs, isLoading: murmursLoading } = useQuery<any>({
     queryKey: ['userMurmurs', id, page],
     queryFn: () => userService.getUserMurmurs(id!, page, pageSize),
-    placeholderData: keepPreviousData, // Replace keepPreviousData
+    placeholderData: keepPreviousData,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
   });
 
   if (userLoading) return <div className="text-center">Loading...</div>;
   if (!user) return <div className="text-center text-red-500">User not found</div>;
 
   const isOwnProfile = currentUser?.id === user.id;
-
-  console.log('murmurs', murmurs);
-  console.log('isOwnProfile', user);
 
   return (
     <div>
@@ -40,9 +40,13 @@ function UserDetailPage() {
         <div className="text-center">Loading murmurs...</div>
       ) : (
         <>
-          {murmurs?.data.map((murmur) => (
-            <MurmurCard key={murmur.id} murmur={murmur} />
-          ))}
+          {murmurs?.murmurs?.length ? (
+            murmurs.murmurs.map((murmur) => (
+              <MurmurCard key={murmur.id} murmur={murmur} />
+            ))
+          ) : (
+            <p className="text-center text-gray-500">No murmurs found.</p>
+          )}
           <div className="flex justify-center space-x-4 mt-6">
             <button
               onClick={prevPage}

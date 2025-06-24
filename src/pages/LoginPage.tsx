@@ -15,14 +15,17 @@ function LoginPage() {
   const mutation = useMutation({
     mutationFn: authService.login,
     onSuccess: (data) => {
-      localStorage.setItem('access_token',JSON.stringify(data?.access_token)); 
-      localStorage.setItem('user_info',JSON.stringify(data?.user)); // Replace localStorage.setItem('access_token', data.access_token); // Replace localStorage.setItem('access_token')
+      localStorage.setItem('access_token', JSON.stringify(data?.access_token));
+      localStorage.setItem('user_info', JSON.stringify(data?.user));
       setAuth(data.access_token, data.user);
       toast.success('Logged in successfully!'); // Use react-toastify
       navigate('/');
     },
-    onError: () => toast.error('Invalid credentials'), // Use react-toastify
-  }); 
+    onError: (error: any) => {
+      const message = error?.response?.data?.message || 'Login failed';
+      toast.error(message);
+    },
+  });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
